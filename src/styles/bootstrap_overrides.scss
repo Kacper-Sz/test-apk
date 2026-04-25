@@ -1,0 +1,100 @@
+// Font imports
+@font-face {
+  font-family: 'NunitoSans';
+  src: url("./assets/fonts/NunitoSans.ttf") format("truetype");
+}
+
+// Carton color scheme
+$carton-background-light:      #fcf7f1;
+$carton-background-dark:       #E8D8BE;
+$carton-cardboard-very-light:   #C8A97E;
+$carton-cardboard-light:        #B8956A;
+$carton-cardboard-dark:         #9C7A52;
+$carton-cardboard-very-dark:    #7A5C3E;
+$carton-accent-light:          #E0A34E;
+$carton-accent-dark:           #A65A2E;
+$carton-primary-text:          #3E2F23;
+$carton-secondary-text:        #5C4B3A;
+
+// Color scheme overrides
+$primary:       $carton-accent-light;
+// $secondary:     $gray-600 !default;
+// $success:       $green !default;
+// $info:          $cyan !default;
+// $warning:       $yellow !default;
+// $danger:        $red !default;
+$light:         white;
+// $dark:          $gray-900 !default;
+
+// Body
+$body-bg:                   $carton-background-light;  
+$body-color:                $carton-primary-text;
+
+// Inputs
+$input-bg:                  $light;
+
+// Cards
+$card-bg:                   $light;
+
+// Dropdowns
+$dropdown-bg:               $light;
+
+// Headers
+    // Header container
+    .carton-header {
+      background-color: $primary;
+      height: 3rem;
+      letter-spacing: 5%;
+      text-transform: uppercase;
+    }
+    .barcode-scanner-header {
+      background: linear-gradient(180deg,rgba(50, 50, 50, 1) 0%, rgba(50, 50, 50, 0.5) 75%, rgba(50, 50, 50, 0) 100%);
+      height: 3rem;
+    }
+$headings-font-family:        'NunitoSans', sans-serif;
+
+// Drawer
+.drawer {
+  background-color: var(--bs-body-bg);
+  box-shadow: 4px 0 16px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-width: 360px;
+  position: fixed;
+  left: 0;
+  top: 0;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  width: 75%;
+  z-index: 1050;
+}
+.drawer-open {
+  transform: translateX(0);
+}
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+}
+.drawer-body {
+  padding: 1rem;
+  flex: 1;
+  overflow-y: auto;
+}
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 1049;
+}
+
+// Temp video styling
+video {
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover; /* or 'contain' for debugging */
+}
+
+@import "../../node_modules/bootstrap/scss/bootstrap";
