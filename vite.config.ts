@@ -4,35 +4,32 @@ import react from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: '/test-apk/',  // <--- DODAJ TĘ LINIĘ (nazwa repo)
   server: {
     host: true,
     allowedHosts: [
-      '.ngrok-free.dev',   // allow all ngrok subdomains
+      '.ngrok-free.dev',
       '.ngrok.io'
     ]
   },
   plugins: [react(), VitePWA({
     registerType: 'prompt',
     injectRegister: false,
-
     pwaAssets: {
       disabled: false,
       config: true,
     },
-
     manifest: {
       name: 'Carton',
       short_name: 'Carton',
       description: 'Carton',
       theme_color: '#ffffff',
     },
-
     workbox: {
       globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
       cleanupOutdatedCaches: true,
       clientsClaim: true,
     },
-
     devOptions: {
       enabled: false,
       navigateFallback: 'index.html',

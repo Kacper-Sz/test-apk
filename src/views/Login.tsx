@@ -5,6 +5,7 @@ import { Eye, EyeSlash } from 'react-bootstrap-icons';
 import {saveUser, saveTokens} from '../Storage';
 import LoadingSpinner from './components/Spinner';
 
+import logo from '../assets/logo.png'; 
 
 const Login: React.FC = () => {
     const [email, setEmail] = useState('');
@@ -12,6 +13,8 @@ const Login: React.FC = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
+
+    
 
     const handleSubmit = async () => {
         setIsLoading(true);
@@ -49,11 +52,13 @@ const Login: React.FC = () => {
 
 
     // <img src="src/assets/logo.png" className="img-fluid"/>
+    //<img src="/logo.png" className="img-fluid" alt="logo" />
     return (
         <div className="min-vh-100 d-flex align-items-center justify-content-center">
             <div className="w-100 px-4 text-center" style={{ maxWidth: 320 }}>
                 
-                <img src="/logo.png" className="img-fluid" alt="logo" />
+                
+                <img src={logo} className="img-fluid" alt="logo" />
 
                 {/* Tytuł */}
                 <h1 className="fw-bold mb-4">Logowanie</h1>

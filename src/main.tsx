@@ -14,10 +14,12 @@ import ProductBarcodeScanner from './views/ProductBarcodeScanner.tsx'
 import EditContainer from './views/EditContainer.tsx'
 import EditProduct from './views/EditProduct.tsx'
 
+// Dodaj tę stałą - automtycznie wykrywa czy jesteśmy na GitHub Pages
+const basename = import.meta.env.PROD ? '/test-apk' : '/';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter>
+    <BrowserRouter basename={basename}>  {/* <--- DODAJ basename TUTAJ */}
       <Routes>
           <Route path="/" element={<App/>} />
           <Route path="/containers" element={<Containers/>} />

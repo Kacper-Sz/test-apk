@@ -1,4 +1,5 @@
 {
+  "homepage": "https://Kacper-Sz.github.io/test-apk",
   "name": "carton",
   "private": true,
   "version": "0.0.0",
@@ -7,7 +8,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@zxing/library": "^0.21.3",
