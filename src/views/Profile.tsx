@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { Container, Card, Button, Modal, Form } from 'react-bootstrap';
-import { PersonCircle, EnvelopeFill, TelephoneFill, PeopleFill } from 'react-bootstrap-icons';
-import { getUser, removeUser } from '../Storage';
+import { PersonCircle, EnvelopeFill, TelephoneFill, PeopleFill, PersonPlusFill } from 'react-bootstrap-icons';
+import { getUser, removeUser, saveUser, saveFriends } from '../Storage';
 import Drawer from './components/Drawer';
 import Header from './components/Header';
-import type { UserModel } from './types/models.ts';
+import type { UserModel, FriendModel } from './types/models.ts';
 import { apiFetch } from '../api.ts';
+
+const MAX_VISIBLE_FRIENDS = 3;
 
 const Profile: React.FC = () => {
     const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
     const [user, setUser] = useState<UserModel | null>(null);
+    const [friends, setFriends] = useState<FriendModel[]>([]);
+    const [loadingFriends, setLoadingFriends] = useState<boolean>(false);
     const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
     const [deletePassword, setDeletePassword] = useState<string>('');
     const [isDeleting, setIsDeleting] = useState<boolean>(false);
@@ -18,27 +22,89 @@ const Profile: React.FC = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const user = getUser();
-        if (user) {
-            setUser(user);
-        }
+        const init = async () => {
+            const cachedUser = getUser();
+            if (cachedUser) {
+                setUser(cachedUser);
+            }
+
+            await fetchUser();
+        };
+
+        init();
     }, []);
+
+    const fetchUser = async () => {
+        const cachedUser = getUser();
+        if (!cachedUser?.id) return;
+
+        try {
+            const response = await apiFetch(`/api/users/${cachedUser.id}`, {
+                method: 'GET',
+            });
+
+            const data = await response.json();
+
+            if (data.status === 0 && data.user) {
+                const freshUser: UserModel = data.user;
+                saveUser(freshUser);
+                setUser(freshUser);
+                await fetchFriends(freshUser);
+            } else {
+                if (cachedUser) {
+                    await fetchFriends(cachedUser);
+                }
+            }
+        } catch (error) {
+            console.error('Błąd podczas pobierania danych użytkownika:', error);
+            if (cachedUser) {
+                await fetchFriends(cachedUser);
+            }
+        }
+    };
+
+    const fetchFriends = async (storedUser: UserModel) => {
+        const friendIds: string[] = (storedUser.friends ?? [])
+            .map((f: any) => f?.id ?? f)
+            .filter((id: any): id is string => typeof id === 'string' && id.length > 0);
+
+        if (friendIds.length === 0) return;
+
+        setLoadingFriends(true);
+        try {
+            const response = await apiFetch('/api/users/users', {
+                method: 'POST',
+                body: JSON.stringify({ usersId: friendIds })
+            });
+
+            const data = await response.json();
+
+            if (data.status === 0 && Array.isArray(data.users)) {
+                saveFriends(data.users);
+                setFriends(data.users);
+            }
+        } catch (error) {
+            console.error('Błąd podczas pobierania znajomych:', error);
+        } finally {
+            setLoadingFriends(false);
+        }
+    };
 
     const handleDeleteAccount = async () => {
         if (!user?.id) {
             alert('Brak danych do usunięcia konta');
             return;
         }
-    
+
         setIsDeleting(true);
         try {
             const response = await apiFetch(`/api/users/delete/${user.id}`, {
                 method: 'DELETE',
                 body: JSON.stringify({ password: deletePassword })
             });
-        
+
             const data = await response.json();
-        
+
             if (data.status === 0) {
                 removeUser();
                 setShowDeleteModal(false);
@@ -54,6 +120,9 @@ const Profile: React.FC = () => {
             setIsDeleting(false);
         }
     };
+
+    const visibleFriends = friends.slice(0, MAX_VISIBLE_FRIENDS);
+    const hasMoreFriends = friends.length > MAX_VISIBLE_FRIENDS;
 
     return (
         <>
@@ -113,16 +182,27 @@ const Profile: React.FC = () => {
                 {/* Znajomi */}
                 <Card className="shadow-sm">
                     <Card.Body className="py-2 px-3">
-                        <div className="d-flex align-items-center gap-2 mb-2">
-                            <PeopleFill size={18} className="text-secondary" />
-                            <p className="small fw-semibold text-uppercase text-muted mb-0">
-                                Znajomi ({user?.friends?.length ?? 0})
-                            </p>
+                        <div className="d-flex align-items-center justify-content-between mb-2">
+                            <div className="d-flex align-items-center gap-2">
+                                <PeopleFill size={18} className="text-secondary" />
+                                <p className="small fw-semibold text-uppercase text-muted mb-0">
+                                    Znajomi ({friends.length})
+                                </p>
+                            </div>
+                            <button
+                                className="btn btn-link p-0 text-secondary"
+                                title="Dodaj znajomego"
+                                onClick={() => navigate('/friends')}
+                            >
+                                <PersonPlusFill size={20} />
+                            </button>
                         </div>
 
-                        {user?.friends && user.friends.length > 0 ? (
+                        {loadingFriends ? (
+                            <p className="text-muted small mb-0">Ładowanie znajomych...</p>
+                        ) : visibleFriends.length > 0 ? (
                             <div className="d-flex flex-column gap-2">
-                                {user.friends.map((friend, index) => (
+                                {visibleFriends.map((friend, index) => (
                                     <div key={friend.id || index} className="d-flex align-items-center gap-3 py-1">
                                         <PersonCircle size={36} className="text-secondary flex-shrink-0" />
                                         <div>
@@ -131,6 +211,24 @@ const Profile: React.FC = () => {
                                         </div>
                                     </div>
                                 ))}
+
+                                {hasMoreFriends && (
+                                    <div className="d-flex align-items-center gap-3 py-1 text-muted">
+                                        <PersonCircle size={36} className="text-secondary flex-shrink-0 opacity-25" />
+                                        <p className="mb-0 fw-semibold" style={{ letterSpacing: '0.2em' }}>
+                                            +{friends.length - MAX_VISIBLE_FRIENDS} więcej...
+                                        </p>
+                                    </div>
+                                )}
+
+                                <Button
+                                    variant="outline-secondary"
+                                    size="sm"
+                                    className="mt-2 w-100"
+                                    onClick={() => navigate('/friends')}
+                                >
+                                    Pokaż wszystkich znajomych
+                                </Button>
                             </div>
                         ) : (
                             <p className="text-muted small mb-0">Brak znajomych</p>

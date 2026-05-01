@@ -35,22 +35,22 @@ function App() {
         </p>
         <p>{apiData ? JSON.stringify(apiData, null, 2) : "Loading..."}</p>
         <div className="d-flex justify-content-center gap-2 flex-wrap">
-        <button type="button" className="btn btn-secondary" onClick={() => navigate("containers")}>
+        <button type="button" className="btn btn-secondary" onClick={() => navigate("/containers")}>
           Przejdź do Kontenerów
         </button>
-        <button type="button" className="btn btn-secondary" onClick={() => navigate("products")}>
+        <button type="button" className="btn btn-secondary" onClick={() => navigate("/products")}>
           Przejdź do Produktów
         </button>
-        <button type="button" className="btn btn-secondary" onClick={() => navigate("login")}>
+        <button type="button" className="btn btn-secondary" onClick={() => navigate("/login")}>
           Przejdź do Logowania
         </button>
-        <button type="button" className="btn btn-secondary" onClick={() => navigate("register")}>
+        <button type="button" className="btn btn-secondary" onClick={() => navigate("/register")}>
           Przejdź do Rejestracji
         </button>
-        <button type="button" className="btn btn-secondary" onClick={() => navigate("profile")}>
+        <button type="button" className="btn btn-secondary" onClick={() => navigate("/profile")}>
           Przejdź do Profilu
         </button>
-        <button type="button" className="btn btn-secondary" onClick={() => navigate("add-container")}>
+        <button type="button" className="btn btn-secondary" onClick={() => navigate("/add-container")}>
           Przejdź do Dodawania Kontenera
         </button>
       </div>

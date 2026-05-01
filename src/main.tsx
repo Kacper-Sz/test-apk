@@ -13,13 +13,13 @@ import AddContainer from './views/AddContainer.tsx'
 import ProductBarcodeScanner from './views/ProductBarcodeScanner.tsx'
 import EditContainer from './views/EditContainer.tsx'
 import EditProduct from './views/EditProduct.tsx'
+import FriendsList from './views/FriendsList.tsx'
+import Notifications from './views/Notifications.tsx'
 
-// Dodaj tę stałą - automtycznie wykrywa czy jesteśmy na GitHub Pages
-const basename = import.meta.env.PROD ? '/test-apk' : '/';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter basename={basename}>  {/* <--- DODAJ basename TUTAJ */}
+    <BrowserRouter basename="/test-apk/">
       <Routes>
           <Route path="/" element={<App/>} />
           <Route path="/containers" element={<Containers/>} />
@@ -34,6 +34,8 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/add-container" element={<AddContainer/>} />
           <Route path="/containers/:id/edit-container" element={<EditContainer/>} />
           <Route path="/containers/:id/edit-product/:productId" element={<EditProduct/>} />
+          <Route path="/friends" element={<FriendsList />} />
+          <Route path="/notifications" element={<Notifications />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>

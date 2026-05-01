@@ -64,6 +64,7 @@ const AddProduct: React.FC = () => {
                     quantity: quantity,
                     capacity: capacity,
                     unit: unit,
+                    description: description.trim() || null,
                     tags: tags.length > 0 ? tags : null,
                     expirationDate: expirationDate ? new Date(expirationDate).toISOString() : null,
                 }),

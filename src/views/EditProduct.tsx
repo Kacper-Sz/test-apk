@@ -5,9 +5,11 @@ import { CameraFill, PencilFill, Stars, Search } from 'react-bootstrap-icons';
 //import 'bootstrap/dist/css/bootstrap.min.css';
 import Drawer from './components/Drawer';
 import Header from './components/Header';
-import { getStoredProductsByContainerId } from '../Storage';
+import { getStoredProductsByContainerId, updateProductInContainer } from '../Storage';
 import { apiFetch } from '../api';
 
+
+// TRZEBA ODSWIEZAC WIDOK BO OPERUJE NA STARYCH DANYCH DALEJ!!!!
 const UNITS = ['szt.', 'kg', 'g', 'l', 'ml', 'op.'];
 
 const EditProduct: React.FC = () => {
@@ -75,21 +77,34 @@ const EditProduct: React.FC = () => {
             await apiFetch(`/api/Products/changedata/${productId}`, {
                 method: 'PUT',
                 body: JSON.stringify({
-                    request: {
-                        containerId,
-                        productId,
-                        newProductName: name.trim() || null,
-                        newQuantity: quantity ?? null,
-                        newUnit: unit || null,
-                        newCapacity: capacity ?? null,
-                        newTags: tags.length > 0 ? tags : null,
-                        newExpirationDate: expirationDate
-                            ? new Date(expirationDate).toISOString()
-                            : null,
-                    }
+                    containerId,
+                    productId,
+                    newProductName: name.trim() || null,
+                    newQuantity: quantity ?? null,
+                    newUnit: unit || null,
+                    newCapacity: capacity ?? null,
+                    newDescription: description.trim() || null,
+                    newTags: tags.length > 0 ? tags : null,
+                    newExpirationDate: expirationDate
+                        ? new Date(expirationDate).toISOString()
+                        : null,
                 }),
             });
         
+            
+            updateProductInContainer(containerId!, {
+                id: productId!,
+                productName: name.trim(),
+                quantity,
+                unit,
+                capacity,
+                description: description.trim(),
+                tags,
+                expirationDate: expirationDate
+                    ? new Date(expirationDate).toISOString()
+                    : undefined,
+            });
+
             navigate(`/containers/${containerId}`);
         } catch {
             setError('Błąd połączenia z serwerem.');

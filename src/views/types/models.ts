@@ -68,5 +68,13 @@ export interface BarcodeProductInfo {
     status: number;
 }
 
+export interface NotificationModel {
+    id: string;
+    userId: string;
+    type: 0 | 1; // 0 - zaproszenie do znajomych, 1 - zaproszenie do kontenera
+    content: string;
+    date: string;
+}
+
 export const ROLES = ['admin', 'editor', 'viewer'] as const;
 export type Role = (typeof ROLES)[number];

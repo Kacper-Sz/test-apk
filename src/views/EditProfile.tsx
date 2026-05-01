@@ -7,17 +7,6 @@ import Drawer from './components/Drawer';
 import Header from './components/Header';
 import { apiFetch } from '../api';
 
-/* zobaczyc jeszcze jak wyglada czy na pewno wszyskto
-interface User {
-    id?: string;
-    login?: string;
-    email?: string;
-    phoneNumber?: string;
-    firstName?: string;
-    lastName?: string;
-}
-    */
-
 const EditProfile: React.FC = () => {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [login, setLogin] = useState('');
@@ -46,7 +35,6 @@ const EditProfile: React.FC = () => {
     const isFormValid = email && phoneNumber && firstName && lastName;
 
     const dataValidation = (): boolean => {
-        // Walidacja email - nie wiem czy nie zmienic na jakas bardziej surowa
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             setError('Niepoprawny email!');
@@ -84,6 +72,9 @@ const EditProfile: React.FC = () => {
     };
 
     const handleSubmit = async () => {
+        // Reset błędu przed każdą próbą zapisu
+        setError(null);
+
         if (!dataValidation()) return;
         setLoading(true);
 
@@ -106,11 +97,11 @@ const EditProfile: React.FC = () => {
             if (phoneNumber !== (user.phoneNumber || ''))
                 fieldsToUpdate.push({ fieldName: 'phonenumber', fieldValue: phoneNumber });
 
-            // trzeba kazde osobno
-            // chyba - i tak obecnie nie dziala xdddddd
+            // Wysyłamy każde pole osobno — zapisujemy usera tylko raz po ostatnim requescie
+            let updatedUser = user;
             for (const field of fieldsToUpdate) {
                 const res = await apiFetch(`/api/users/credentials/${user.id}`, {
-                    method: 'POST',
+                    method: 'PUT',
                     body: JSON.stringify(field),
                 });
                 const data = await res.json();
@@ -118,7 +109,13 @@ const EditProfile: React.FC = () => {
                     setError(`Błąd przy zmianie ${field.fieldName}: ${data.message}`);
                     return;
                 }
-                saveUser(data.user);
+                // ostatnia wersja z api
+                updatedUser = data.user;
+            }
+
+            // Zapisujemy do storage raz — po wszystkich zmianach danych
+            if (fieldsToUpdate.length > 0) {
+                saveUser(updatedUser);
             }
 
             if (password) {
@@ -131,7 +128,10 @@ const EditProfile: React.FC = () => {
                     setError(`Błąd zmiany hasła: ${data.message}`);
                     return;
                 }
-                saveUser(data.user);
+                // Przy zmianie hasła API zwraca zaktualizowanego usera —
+                // zapisujemy tylko pola które faktycznie nas interesują (bez passwordHash)
+                const { passwordHash: _omit, ...safeUser } = data.user;
+                saveUser(safeUser);
             }
 
             navigate('/profile');
@@ -144,8 +144,7 @@ const EditProfile: React.FC = () => {
 
     return (
         <>
-
-            <Drawer open={drawerOpen} setOpen={setDrawerOpen}/>
+            <Drawer open={drawerOpen} setOpen={setDrawerOpen} />
 
             <Header
                 title="Edytuj Profil"
@@ -289,7 +288,7 @@ const EditProfile: React.FC = () => {
                         variant="outline-dark"
                         className="flex-grow-1 border-2 fw-semibold py-2"
                     >
-                        Zapisz
+                        {loading ? 'Zapisywanie...' : 'Zapisz'}
                     </Button>
                 </div>
 

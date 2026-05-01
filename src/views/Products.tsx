@@ -30,7 +30,7 @@ const Products: React.FC = () => {
 
     const handleDelete = async (product: ProductModel) => {
         if (!id || !product.id) return;
-        if (!window.confirm(`Czy na pewno chcesz usunąć "${product.productName}"?`)) return;
+        //if (!window.confirm(`Czy na pewno chcesz usunąć "${product.productName}"?`)) return;
 
         setDeleteLoadingId(product.id);
         try {
@@ -163,12 +163,12 @@ const Products: React.FC = () => {
                             <div className="flex-grow-1">
                                 <div className="d-flex align-items-baseline gap-2">
                                     <span className="fw-bold">{product.productName || 'Brak nazwy'}</span>
-                                    {product.capacity && (
-                                        <span className="text-muted small">{product.capacity}</span>
+                                    {product.quantity && (
+                                        <span className="text-muted small">{product.quantity} {'szt.'}</span>
                                     )}
                                 </div>
                                 <div className="d-flex align-items-center gap-2 mt-1 small">
-                                    <span className="text-muted">{product.quantity ?? 0} {product.unit || ''}</span>
+                                    <span className="text-muted">{product.capacity ?? 0} {product.unit || ''}</span>
                                     <span className="text-muted">·</span>
                                     <span className={expired ? 'text-danger fw-semibold' : expiringSoon ? 'text-warning fw-semibold' : 'text-muted'}>
                                         {product.expirationDate
@@ -256,7 +256,7 @@ const Products: React.FC = () => {
                                         </span>
                                     )}
                                     {product.capacity && (
-                                        <span>Pojemność: {product.capacity}</span>
+                                        <span>Pojemność: {product.capacity} {product.unit || ''}</span>
                                     )}
                                 </div>
 

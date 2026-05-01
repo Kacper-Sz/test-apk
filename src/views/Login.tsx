@@ -5,6 +5,7 @@ import { Eye, EyeSlash } from 'react-bootstrap-icons';
 import {saveUser, saveTokens} from '../Storage';
 import LoadingSpinner from './components/Spinner';
 
+// musi byc tutaj zdjecie bo nie dziala przy stawioaniu strony
 import logo from '../assets/logo.png'; 
 
 const Login: React.FC = () => {
