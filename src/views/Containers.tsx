@@ -122,6 +122,7 @@ const Containers: React.FC = () => {
                         <PlusCircle size={28} />
                     </button>
                 }
+                showBackButton={false}
             />
 
             <SearchBar

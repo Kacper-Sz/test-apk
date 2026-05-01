@@ -93,14 +93,14 @@ const Register: React.FC = () => {
 
     if (isLoading) {
         return (
-            <div className="min-vh-100 d-flex align-items-center justify-content-center bg-white">
+            <div className="min-vh-100 d-flex align-items-center justify-content-center">
                 <LoadingSpinner message="Rejestracja..." variant="secondary" />
             </div>
         );
     }
 
     return (
-        <div className="min-vh-100 d-flex align-items-center justify-content-center bg-white py-5">
+        <div className="min-vh-100 d-flex align-items-center justify-content-center py-5">
             <div className="w-100 px-4 text-center" style={{ maxWidth: 340 }}>
 
                 {/* Tytuł */}

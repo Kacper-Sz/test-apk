@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import React, {  useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Container, Card, Form, InputGroup, Button, Alert } from 'react-bootstrap';
 import { CameraFill, PencilFill, Stars, Search, UpcScan } from 'react-bootstrap-icons';
 import Drawer from './components/Drawer';
@@ -10,15 +10,20 @@ import { apiFetch } from '../api.ts';
 const UNITS = ['szt.', 'kg', 'g', 'l', 'ml', 'op.'];
 
 const AddProduct: React.FC = () => {
-    const { id: containerId } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const location = useLocation();
+    const initialName = location.state?.name as string | undefined;
+    const initialCapacity = location.state?.capacity as number | undefined;
+    const initialUnit = location.state?.unit as string | undefined;
+
+    const { id: containerId } = useParams<{ id: string }>();
 
     const [drawerOpen, setDrawerOpen] = useState(false);
-    const [name, setName] = useState('');
+    const [name, setName] = useState(decodeURIComponent(initialName || ''));
     const [expirationDate, setExpirationDate] = useState('');
     const [quantity, setQuantity] = useState<number>(1);
-    const [capacity, setCapacity] = useState<number>(1);
-    const [unit, setUnit] = useState<string>('szt.');
+    const [capacity, setCapacity] = useState<number>(initialCapacity || 1);
+    const [unit, setUnit] = useState<string>(initialUnit || 'szt.');
     const [tags, setTags] = useState<string[]>([]);
     const [tagInput, setTagInput] = useState('');
     const [description, setDescription] = useState('');

@@ -56,5 +56,17 @@ export interface TokenModel {
     refreshToken: string;
 }
 
+export interface BarcodeProductInfo {
+    code: string;
+    product?: {
+        name?: string;
+        brand?: string;
+        image_url?: string;
+        capacity?: number;
+        unit?: string;
+    };
+    status: number;
+}
+
 export const ROLES = ['admin', 'editor', 'viewer'] as const;
 export type Role = (typeof ROLES)[number];
