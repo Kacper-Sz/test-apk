@@ -10,6 +10,9 @@ import { apiFetch } from '../api.ts';
 
 const MAX_VISIBLE_FRIENDS = 3;
 
+// tu by trzeba bylo aktualizowac liste id znajomych uzytkownika - napisalem ze maja zmienic w api
+// bo poierana jest tylko w moemncie zalogowania xd
+
 const Profile: React.FC = () => {
     const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
     const [user, setUser] = useState<UserModel | null>(null);
