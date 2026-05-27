@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Containers from './views/Containers.tsx'
 import Products from './views/Products.tsx'
 import Login from './views/Login.tsx'
@@ -19,7 +19,7 @@ import '/src/styles/bootstrap_overrides.scss';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/containers" element={<Containers/>} />
@@ -36,6 +36,6 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/friends" element={<FriendsList />} />
           <Route path="/notifications" element={<Notifications />} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   </StrictMode>
 )

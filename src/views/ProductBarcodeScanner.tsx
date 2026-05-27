@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ArrowRepeat, ChevronLeft, Hammer } from "react-bootstrap-icons";
 import type { BarcodeProductInfo } from "./types/models";
 import { Button } from "react-bootstrap";
+import qrLens from "../assets/qr_lens.svg";
 
 const DEBUG_BARCODE = "5906734830713";
 
@@ -115,7 +116,7 @@ const ProductBarcodeScanner: React.FC = () => {
       />
 
       <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
-        <img src="/src/assets/qr_lens.svg" className="qr-lens opacity-50"/>
+        <img src={qrLens} className="qr-lens opacity-50" alt="Ramka skanera" />
       </div>
 
       {/* Nagłówek skanera kodów kreskowych */}

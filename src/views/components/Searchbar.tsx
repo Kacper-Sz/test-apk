@@ -1,6 +1,6 @@
 import type React from "react";
 import { useState } from "react";
-import { Container, Dropdown, Form, InputGroup, Badge, Collapse } from "react-bootstrap";
+import { Container, Dropdown, Form, InputGroup, Collapse } from "react-bootstrap";
 import { ArrowDownUp, Funnel, Search, XLg } from "react-bootstrap-icons";
 
 // ─── Typy filtrów ──────────────────────────────────────────────────────────

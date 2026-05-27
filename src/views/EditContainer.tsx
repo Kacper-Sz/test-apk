@@ -39,7 +39,7 @@ const EditContainer: React.FC = () => {
     const [tags, setTags] = useState<string[]>([]);
     const [tagInput, setTagInput] = useState('');
     const [description, setDescription] = useState('');
-    const [stripColor, setStripColor] = useState<string>('Blue');
+    const [stripColor, setStripColor] = useState<string | null>('Blue');
     const [members, setMembers] = useState<GroupMember[]>([]);
     // originalMembers trzyma pełne obiekty (friend + rola) załadowane z kontenera
     const [originalMemberIds, setOriginalMemberIds] = useState<string[]>([]);
@@ -269,7 +269,7 @@ const EditContainer: React.FC = () => {
         formData.append('newDescription', description);
         tags.forEach(tag => formData.append('newTags', tag));
         formData.append('newIsForMoreUsers', JSON.stringify(isGroup));
-        formData.append('newContainerStripColor', stripColor);
+        formData.append('newContainerStripColor', stripColor ?? '');
         if (imageFile) {
             formData.append('newImage', imageFile);
         }

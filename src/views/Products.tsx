@@ -232,7 +232,7 @@ const Products: React.FC = () => {
 
     const getProductKey = (product: ProductModel) => product.id || product.productName || '';
 
-    const handleLongPress = useLongPress((event, meta) => {
+    const handleLongPress = useLongPress((event, _meta) => {
         setIsSelectionMode(true);
         const productCard = (event.target as Element).closest('.card') as HTMLElement;
         const product = products.find(p => p.id == productCard?.dataset.productId);
@@ -242,7 +242,7 @@ const Products: React.FC = () => {
             }
         }
     }, {
-        onCancel: (event, meta) => {
+        onCancel: (event, _meta) => {
             if(isSelectionMode){
                 const productCard = (event.target as Element).closest('.card') as HTMLElement;
                 const product = products.find(p => p.id == productCard?.dataset.productId);

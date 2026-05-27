@@ -399,7 +399,7 @@ const Containers: React.FC = () => {
         return `${count} Produktów`;
     };
 
-    const handleLongPress = useLongPress((event, meta) => {
+    const handleLongPress = useLongPress((event, _meta) => {
         setIsSelectionMode(true);
         const containerCard = (event.target as Element).closest('.card') as HTMLElement;
         const container = containers.find(c => c.id == containerCard?.dataset.containerId);
@@ -409,7 +409,7 @@ const Containers: React.FC = () => {
             }
         }
     }, {
-        onCancel: (event, meta) => {
+        onCancel: (event, _meta) => {
             if (isSelectionMode) {
                 const containerCard = (event.target as Element).closest('.card') as HTMLElement;
                 const container = containers.find(c => c.id == containerCard?.dataset.containerId);

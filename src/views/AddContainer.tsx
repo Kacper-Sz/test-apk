@@ -183,7 +183,7 @@ const AddContainer: React.FC = () => {
             if (description) formData.append('description', description);
             if (tags.length > 0) tags.forEach(tag => formData.append('tags', tag));
             formData.append('isForMoreUsers', JSON.stringify(isGroup));
-            formData.append('containerStripColor', stripColor);
+            formData.append('containerStripColor', stripColor ?? '');
             if (imageFile) formData.append('image', imageFile);
 
             // Użytkownicy zostaną dodani do kontenera dopiero po akceptacji zaproszenia
