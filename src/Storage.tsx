@@ -55,7 +55,6 @@ export const getStoredProductsByContainerId = (containerId: string): ProductMode
     const containers = getStoredContainers();
     const container = containers.find(c => c.id === containerId);
     if (!container) return [];
-    // filtrujemy po containerId na wypadek gdyby produkty miały to pole
     return (container.productList || []).filter(
         p => !p.containerId || p.containerId === containerId
     );
@@ -90,6 +89,15 @@ export const removeProductFromContainer = (containerId: string, productId: strin
     const updated = containers.map(c => {
         if (c.id !== containerId) return c;
         return { ...c, productList: (c.productList || []).filter(p => p.id !== productId) };
+    });
+    saveContainers(updated);
+};
+
+export const removeProductsFromContainer = (containerId: string, productIds: string[]): void => {
+    const containers = getStoredContainers();
+    const updated = containers.map(c => {
+        if (c.id !== containerId) return c;
+        return { ...c, productList: (c.productList || []).filter(p => !productIds.includes(p.id!)) };
     });
     saveContainers(updated);
 };

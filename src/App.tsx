@@ -1,7 +1,5 @@
-import PWABadge from './PWABadge.tsx'
-import { test_api } from './api_test.ts'
 import { useNavigate } from "react-router";
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import '/src/styles/bootstrap_overrides.scss';
 
 function App() {
@@ -9,14 +7,6 @@ function App() {
   const [apiData] = useState<any | null>(null);
   let navigate = useNavigate();
 
-  useEffect(() => {
-    async function load(){
-      const result = await test_api();
-      return result;
-    }
-
-    load()
-  }, [])
 
   return (
     <div>
@@ -54,7 +44,6 @@ function App() {
           Przejdź do Dodawania Kontenera
         </button>
       </div>
-      <PWABadge />
     </div>
   )
 }

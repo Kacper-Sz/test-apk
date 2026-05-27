@@ -1,21 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Card, Form, InputGroup, Button, Alert } from 'react-bootstrap';
-import { CameraFill, PencilFill, Stars, Search, PersonCircle, PlusCircle } from 'react-bootstrap-icons';
+import { CameraFill, PencilFill, Stars, PlusLg, PersonCircle, PlusCircle, X } from 'react-bootstrap-icons';
 import Drawer from './components/Drawer';
 import Header from './components/Header';
 import { getUser, getStoredFriends, getStoredContainers, saveContainers, saveFriends } from '../Storage';
 import { apiFetch } from '../api';
 import type { FriendModel, GroupMember, Role } from './types/models';
 import { ROLES } from './types/models';
-// WAZNE
-// tutaj mialem troche problemy
-// cos porobilem samemu
-// cos porobilem z ai
-// wyszo jak wyszlo XD
-// trzeba to jeszcze mocno sprawdzic czy wszystko bedzie dzilac porpawnie
 
-//const ROLES: Role[] = ['admin', 'editor', 'viewer'];
 const AVATAR_COLORS = ['#64b5f6', '#ffb74d', '#81c784', '#b39ddb', '#f06292'];
 const getAvatarColor = (index: number) => AVATAR_COLORS[index % AVATAR_COLORS.length];
 
@@ -30,13 +23,14 @@ const STRIP_COLORS: { label: string; value: string; hex: string }[] = [
     { label: 'Szary',       value: 'Gray',   hex: '#95a5a6' },
 ];
 
-
 const AddContainer: React.FC = () => {
     const navigate = useNavigate();
     const currentUser = getUser();
 
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [name, setName] = useState('');
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [isGroup, setIsGroup] = useState(false);
     const [tags, setTags] = useState<string[]>([]);
     const [tagInput, setTagInput] = useState('');
@@ -44,11 +38,12 @@ const AddContainer: React.FC = () => {
     const [members, setMembers] = useState<GroupMember[]>([]);
 
     const [searchInput, setSearchInput] = useState('');
-    const [newMemberRole, setNewMemberRole] = useState<Role>('viewer');
+    const [newMemberRole, setNewMemberRole] = useState<Role>('Viewer');
     const [suggestions, setSuggestions] = useState<FriendModel[]>([]);
     const [allFriends, setAllFriends] = useState<FriendModel[]>(() => getStoredFriends());
     const [selectedFriend, setSelectedFriend] = useState<FriendModel | null>(null);
     const searchRef = useRef<HTMLDivElement>(null);
+    const galleryButtonRef = React.useRef<HTMLInputElement | null>(null);
 
     const refreshFriends = async () => {
         const friendIds: string[] = currentUser?.friends ?? [];
@@ -74,10 +69,7 @@ const AddContainer: React.FC = () => {
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-
-    const [stripColor, setStripColor] = useState<string>('White');
-
-    
+    const [stripColor, setStripColor] = useState<string | null>('White');
 
     const isFormValid = name.trim().length > 0;
 
@@ -88,9 +80,11 @@ const AddContainer: React.FC = () => {
         }
         const q = searchInput.toLowerCase();
         const alreadyAdded = members.map(m => m.friend.id);
+        // Bieżący użytkownik jest ownerem — nie może być też dodany jako członek
+        const excludedIds = new Set([...alreadyAdded, currentUser?.id].filter(Boolean) as string[]);
         setSuggestions(
             allFriends.filter(f =>
-                !alreadyAdded.includes(f.id) &&
+                !excludedIds.has(f.id) &&
                 (f.login.toLowerCase().includes(q) ||
                     f.email.toLowerCase().includes(q) ||
                     f.firstName.toLowerCase().includes(q) ||
@@ -109,6 +103,26 @@ const AddContainer: React.FC = () => {
         return () => document.removeEventListener('mousedown', handler);
     }, []);
 
+    useEffect(() => {
+        const fetchImage = async () => {
+            const res = await fetch(imageUrl!);
+            const blob = await res.blob();
+            const file = new File([blob], 'image.jpg', { type: blob.type });
+            return file;
+        };
+
+        if (imageUrl != null && imageFile == null) {
+            fetchImage().then(file => setImageFile(file)).catch(err => {
+                console.error('Błąd pobierania obrazu:', err);
+                setImageUrl(null);
+            });
+        }
+
+        return () => {
+            if (imageUrl) URL.revokeObjectURL(imageUrl);
+        };
+    }, [imageUrl]);
+
     const handleSelectSuggestion = (friend: FriendModel) => {
         setSelectedFriend(friend);
         setSearchInput(`${friend.firstName} ${friend.lastName} (${friend.login})`);
@@ -120,7 +134,7 @@ const AddContainer: React.FC = () => {
         setMembers(prev => [...prev, { friend: selectedFriend, role: newMemberRole }]);
         setSelectedFriend(null);
         setSearchInput('');
-        setNewMemberRole('viewer');
+        setNewMemberRole('Viewer');
     };
 
     const handleRoleChange = (index: number, role: Role) => {
@@ -146,6 +160,14 @@ const AddContainer: React.FC = () => {
         setTags(prev => prev.filter(t => t !== tag));
     };
 
+    const handleAddTagButton = () => {
+        const newTag = tagInput.trim().replace(/,$/, '');
+        if (newTag && !tags.includes(newTag)) {
+            setTags(prev => [...prev, newTag]);
+        }
+        setTagInput('');
+    };
+
     const handleSubmit = async () => {
         if (!currentUser?.id) {
             setError('Błąd: brak danych użytkownika.');
@@ -153,22 +175,29 @@ const AddContainer: React.FC = () => {
         }
         setLoading(true);
         setError(null);
-    
+
         try {
-            // 1. Utwórz kontener
+            const formData = new FormData();
+            formData.append('containerName', name);
+            formData.append('ownerId', currentUser.id);
+            if (description) formData.append('description', description);
+            if (tags.length > 0) tags.forEach(tag => formData.append('tags', tag));
+            formData.append('isForMoreUsers', JSON.stringify(isGroup));
+            formData.append('containerStripColor', stripColor);
+            if (imageFile) formData.append('image', imageFile);
+
+            // Użytkownicy zostaną dodani do kontenera dopiero po akceptacji zaproszenia
+            // w związku z tym nie przesyłamy userListJson.
+
             const res = await apiFetch('/api/Containers/create', {
                 method: 'POST',
-                body: JSON.stringify({
-                    containerName: name,
-                    ownerId: currentUser.id,
-                    description: description || null,
-                    tags: tags.length > 0 ? tags : [],
-                    productList: [],
-                    isForMoreUsers: isGroup,
-                    userList: null,
-                    containerStripColor: stripColor,
-                }),
-            });
+                body: formData,
+            }, null);
+
+            if (res.status === 403) {
+                setError('Nie masz uprawnień do wykonania tej akcji.');
+                return;
+            }
 
             const data = await res.json();
 
@@ -179,33 +208,42 @@ const AddContainer: React.FC = () => {
 
             const createdContainer = data.container;
 
-            // TODO czy tutaj tez nie powinno isc jakies powiadomienie do zaakceptowania? 
-            // bo na razie to z bomby dodaje 
-            // a moze zrobic ze to jest identycznie jak z dodaniem do znajomych czy cos
-            // 2. Udostępnij kontener członkom grupy
+            // Zapisz kontener lokalnie
+            const allContainers = getStoredContainers();
+            saveContainers([...allContainers, createdContainer]);
+
+            // Wyślij zaproszenia do nowych członków grupy
             if (isGroup && members.length > 0) {
-                const shareRes = await apiFetch(`/api/Containers/share/${createdContainer.id}`, {
-                    method: 'PUT',
-                    body: JSON.stringify({
-                        containerOwnerId: currentUser.id,
-                        anotherOwners: members.map(m => m.friend.id),
-                    }),
-                });
+                const failedInvites: string[] = [];
 
-                const shareData = await shareRes.json();
+                for (const member of members) {
+                    try {
+                        const inviteRes = await apiFetch('/api/notifications/addcontainer', {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                userId: member.friend.id,
+                                containerId: createdContainer.id,
+                                senderId: currentUser?.id,
+                                role: member.role
+                            }),
+                        });
 
-                if (shareData.status !== 0) {
-                    setError(`Kontener utworzony, ale błąd przy udostępnianiu: ${shareData.message}`);
-                    return;
+                        const inviteData = await inviteRes.json();
+
+                        if (inviteData.status !== 0) {
+                            failedInvites.push(member.friend.login);
+                        }
+                    } catch {
+                        failedInvites.push(member.friend.login);
+                    }
                 }
 
-                // Zapisz zaktualizowaną wersję kontenera (z wypełnionym userList) z odpowiedzi share
-                const allContainers = getStoredContainers();
-                saveContainers([...allContainers, shareData.container]);
-            } else {
-                // 3. Zapisz kontener bez share
-                const allContainers = getStoredContainers();
-                saveContainers([...allContainers, createdContainer]);
+                if (failedInvites.length > 0) {
+                    setError(
+                        `Kontener utworzony, ale nie udało się wysłać zaproszeń do: ${failedInvites.join(', ')}`
+                    );
+                    return;
+                }
             }
 
             navigate('/containers');
@@ -215,6 +253,15 @@ const AddContainer: React.FC = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (!file?.type.startsWith('image/')) return;
+        if (file.size > 5 * 1024 * 1024) return;
+        setImageUrl(URL.createObjectURL(file));
+        setImageFile(file);
     };
 
     return (
@@ -240,6 +287,11 @@ const AddContainer: React.FC = () => {
                                 <span className="text-center text-muted small">
                                     Tutaj<br />zdjęcie/<br />ikonka
                                 </span>
+                                {imageUrl && (
+                                    <img src={imageUrl} alt="Zdjęcie produktu"
+                                    className="position-absolute w-100 h-100 object-fit-cover rounded"
+                                    style={{border: '2px solid #ccc' }}/>
+                                )}
                             </div>
                             <button
                                 className="btn btn-dark rounded-circle d-flex align-items-center justify-content-center position-absolute"
@@ -251,8 +303,15 @@ const AddContainer: React.FC = () => {
                             <button
                                 className="btn btn-dark rounded-circle d-flex align-items-center justify-content-center position-absolute"
                                 style={{ width: 36, height: 36, bottom: -8, right: -8 }}
-                                onClick={() => console.log('TODO: galeria/edytuj')}
+                                onClick={() => galleryButtonRef.current?.click()}
                             >
+                                <input
+                                    ref={galleryButtonRef}
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handlePhotoChange}
+                                    style={{ display: "none" }}
+                                />
                                 <PencilFill size={16} />
                             </button>
                         </div>
@@ -268,6 +327,7 @@ const AddContainer: React.FC = () => {
                             value={name}
                             onChange={e => setName(e.target.value)}
                             className="border-2 border-dark py-2"
+                            maxLength={100}
                         />
                     </Card.Body>
                 </Card>
@@ -293,9 +353,23 @@ const AddContainer: React.FC = () => {
                                     }}
                                 />
                             ))}
+                            <button
+                                onClick={() => {setStripColor(null)}}
+                                title={"None"}
+                                className="border-0 rounded-circle p-0"
+                                style={{
+                                    width: 32,
+                                    height: 32,
+                                    background: 'white',
+                                    outline: stripColor === null ? '3px solid #212529' : '2px solid #ccc',
+                                    outlineOffset: 2,
+                                    cursor: 'pointer'
+                                }}>
+                                    <X size={32} />
+                            </button>
                         </div>
                         <div className="text-muted mt-2" style={{ fontSize: '0.75rem' }}>
-                            Wybrany: {STRIP_COLORS.find(c => c.value === stripColor)?.label ?? stripColor}
+                            Wybrany: {STRIP_COLORS.find(c => c.value === stripColor)?.label ? stripColor : 'Brak'}
                         </div>
                     </Card.Body>
                 </Card>
@@ -305,7 +379,7 @@ const AddContainer: React.FC = () => {
                     <Card.Body className="py-3 px-3">
                         <div className="d-flex align-items-center gap-2 mb-2">
                             <span className="fw-semibold text-nowrap">Tagi:</span>
-                            <InputGroup>
+                            <InputGroup className="input-group-password-focus">
                                 <Form.Control
                                     type="text"
                                     placeholder='Np. "Napój"'
@@ -313,9 +387,11 @@ const AddContainer: React.FC = () => {
                                     onChange={e => setTagInput(e.target.value)}
                                     onKeyDown={handleAddTag}
                                     className="border-2 border-dark py-2"
+                                    maxLength={30}
+                                    disabled={tags.length >= 20}
                                 />
-                                <Button variant="outline-dark" className="border-2 d-flex align-items-center">
-                                    <Search size={16} />
+                                <Button variant="outline-dark" className="border-2 d-flex align-items-center" disabled={!tagInput.trim() || tags.length >= 20} onClick={handleAddTagButton}>
+                                    <PlusLg size={16} />
                                 </Button>
                             </InputGroup>
                             <Button
@@ -342,7 +418,7 @@ const AddContainer: React.FC = () => {
                             </div>
                         )}
                         <div className="text-muted mt-1" style={{ fontSize: '0.75rem' }}>
-                            Wpisz tag i naciśnij Enter lub przecinek
+                            Wpisz tag i naciśnij Enter, przecinek lub +{tags.length > 0 && ` (${tags.length}/20)`}
                         </div>
                     </Card.Body>
                 </Card>
@@ -369,9 +445,8 @@ const AddContainer: React.FC = () => {
 
                         {isGroup && (
                             <div className="d-flex flex-column gap-2">
-                                
-                                {/* Ty jako owner 
-                                TODO - mozna dac awatar jako osobny komponent chyba */}
+
+                                {/* Ty jako owner */}
                                 <div className="d-flex align-items-center gap-2">
                                     <div
                                         className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
@@ -422,7 +497,7 @@ const AddContainer: React.FC = () => {
                                     </div>
                                 ))}
 
-                                {/* Wiersz dodawania — plus | pole wyszukiwania | rola */}
+                                {/* Wiersz dodawania */}
                                 <div className="d-flex align-items-center gap-2" ref={searchRef}>
 
                                     <button
@@ -446,6 +521,7 @@ const AddContainer: React.FC = () => {
                                             }}
                                             className="border-2 border-dark py-1"
                                             size="sm"
+                                            maxLength={100}
                                         />
                                         {suggestions.length > 0 && (
                                             <div
@@ -497,7 +573,11 @@ const AddContainer: React.FC = () => {
                             value={description}
                             onChange={e => setDescription(e.target.value)}
                             className="border-2 border-dark py-2"
+                            maxLength={2000}
                         />
+                        <div className="text-muted text-end mt-1" style={{ fontSize: '0.75rem' }}>
+                            {description.length}/2000
+                        </div>
                     </Card.Body>
                 </Card>
 
@@ -506,8 +586,6 @@ const AddContainer: React.FC = () => {
                         {error}
                     </Alert>
                 )}
-
-
 
                 {/* Przyciski */}
                 <div className="d-flex gap-2">

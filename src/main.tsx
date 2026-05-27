@@ -1,7 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import App from './App.tsx'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Containers from './views/Containers.tsx'
 import Products from './views/Products.tsx'
 import Login from './views/Login.tsx'
@@ -15,15 +14,15 @@ import EditContainer from './views/EditContainer.tsx'
 import EditProduct from './views/EditProduct.tsx'
 import FriendsList from './views/FriendsList.tsx'
 import Notifications from './views/Notifications.tsx'
+import '/src/styles/bootstrap_overrides.scss';
 
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter basename="/test-apk/">
+    <BrowserRouter>
       <Routes>
-          <Route path="/" element={<App/>} />
+          <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/containers" element={<Containers/>} />
-          {/* <Route path="/products" element={<Products/>} /> */}
           <Route path="/containers/:id" element={<Products />} />
           <Route path="/login" element={<Login/>} />
           <Route path="/register" element={<Register/>} />

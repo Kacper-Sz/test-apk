@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Container, Card, Form, InputGroup, Button, Row, Col } from 'react-bootstrap';
-import { Eye, EyeSlash, PersonFill, LockFill } from 'react-bootstrap-icons';
+import { Eye, EyeSlash, PersonFill, LockFill, PersonCircle, PencilFill, XLg } from 'react-bootstrap-icons';
 import { getUser, saveUser } from '../Storage';
 import Drawer from './components/Drawer';
 import Header from './components/Header';
@@ -17,9 +17,13 @@ const EditProfile: React.FC = () => {
     const [phoneNumber, setPhoneNumber] = useState('');
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
+    const [profilePictureUrl, setProfilePictureUrl] = useState('');
+    const [profilePictureFile, setProfilePictureFile] = useState<File | null>(null);
     const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
+
+    const galleryButtonRef = React.useRef<HTMLInputElement | null>(null);
 
     useEffect(() => {
         const user = getUser();
@@ -29,13 +33,17 @@ const EditProfile: React.FC = () => {
             setPhoneNumber(user.phoneNumber || '');
             setFirstName(user.firstName || '');
             setLastName(user.lastName || '');
+            setProfilePictureUrl(user.profileUrl || '');
         }
     }, []);
 
     const isFormValid = email && phoneNumber && firstName && lastName;
 
     const dataValidation = (): boolean => {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        // Ulepszony regex dla adresów email
+        // Wymusza format: nazwa@domena.rozszerzenie (np. test.123@example.com)
+        // Rozszerzenie po kropce musi mieć 2 lub więcej liter.
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         if (!emailRegex.test(email)) {
             setError('Niepoprawny email!');
             return false;
@@ -113,8 +121,24 @@ const EditProfile: React.FC = () => {
                 updatedUser = data.user;
             }
 
+            // Jeśli użytkownik zmienił zdjęcie profilowe, wysyłamy je osobno
+            if (profilePictureFile){
+                const formData = new FormData();
+                formData.append('File', profilePictureFile);
+                const res = await apiFetch(`/api/users/upload/${user.id}`, {
+                    method: 'PUT',
+                    body: formData,
+                }, null);
+                const data = await res.json();
+                if (data.status !== 0) {
+                    setError(`Błąd przy zmianie zdjęcia profilowego: ${data.message}`);
+                    return;
+                }
+                updatedUser = data.user;
+            }
+
             // Zapisujemy do storage raz — po wszystkich zmianach danych
-            if (fieldsToUpdate.length > 0) {
+            if (fieldsToUpdate.length > 0 || profilePictureFile) {
                 saveUser(updatedUser);
             }
 
@@ -142,6 +166,15 @@ const EditProfile: React.FC = () => {
         }
     };
 
+    const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (!file?.type.startsWith('image/')) return;
+        if (file.size > 5 * 1024 * 1024) return;
+        setProfilePictureUrl(URL.createObjectURL(file));
+        setProfilePictureFile(file);
+    };
+
     return (
         <>
             <Drawer open={drawerOpen} setOpen={setDrawerOpen} />
@@ -152,7 +185,46 @@ const EditProfile: React.FC = () => {
                 rightElement={null}
             />
 
-            <Container className="py-4">
+            <Container className="py-4 d-flex flex-column align-items-center">
+                {/* Zdjęcie profilowe */}
+                <div className="position-relative mx-auto" style={{width: 160, height: 160}}>
+                    {profilePictureUrl ? (
+                        <img
+                            src={profilePictureUrl}
+                            alt="Zdjęcie profilowe"
+                            className="rounded-circle mb-3"
+                            style={{ width: 144, height: 144, objectFit: 'cover' }}
+                        />
+                    ) : (
+                        <PersonCircle size={144} className="text-secondary mb-3" />
+                    )}
+                    <button
+                        className="btn btn-dark rounded-circle d-flex align-items-center justify-content-center position-absolute translate-middle"
+                        style={{ width: 36, height: 36, bottom: 0, right: 0}}
+                        onClick={() => galleryButtonRef.current?.click()}
+                    >
+                        <input
+                            ref={galleryButtonRef}
+                            type="file"
+                            accept="image/*"
+                            style={{ display: "none" }}
+                            onChange={handlePhotoChange}
+                        />
+                        <PencilFill size={16} />
+                    </button>
+                    {profilePictureUrl && (
+                        <button
+                            className="btn btn-danger rounded-circle d-flex align-items-center justify-content-center position-absolute translate-middle"
+                            style={{ width: 36, height: 36, top: 8, right: 0 }}
+                            onClick={() => {
+                                setProfilePictureUrl('');
+                                setProfilePictureFile(null);
+                            }}
+                        >
+                            <XLg size={16}/>
+                        </button>
+                    )}
+                </div>
 
                 {/* Sekcja: Dane */}
                 <Card className="shadow-sm mb-3">
@@ -168,9 +240,10 @@ const EditProfile: React.FC = () => {
                                     type="text"
                                     placeholder="Imię"
                                     value={firstName}
-                                    onChange={e => setFirstName(e.target.value)}
+                                    onChange={e => setFirstName(e.target.value.replace(/\s/g, ''))}
                                     autoComplete="given-name"
                                     className="border-2 border-dark py-2"
+                                    maxLength={50}
                                 />
                             </Col>
                             <Col>
@@ -178,9 +251,10 @@ const EditProfile: React.FC = () => {
                                     type="text"
                                     placeholder="Nazwisko"
                                     value={lastName}
-                                    onChange={e => setLastName(e.target.value)}
+                                    onChange={e => setLastName(e.target.value.replace(/\s/g, ''))}
                                     autoComplete="family-name"
                                     className="border-2 border-dark py-2"
+                                    maxLength={50}
                                 />
                             </Col>
                         </Row>
@@ -198,18 +272,20 @@ const EditProfile: React.FC = () => {
                             type="email"
                             placeholder="E-mail"
                             value={email}
-                            onChange={e => setEmail(e.target.value)}
+                            onChange={e => setEmail(e.target.value.replace(/\s/g, ''))}
                             autoComplete="email"
                             className="border-2 border-dark py-2 mb-3"
+                            maxLength={254}
                         />
 
                         <Form.Control
                             type="tel"
                             placeholder="Numer telefonu"
                             value={phoneNumber}
-                            onChange={e => setPhoneNumber(e.target.value)}
+                            onChange={e => setPhoneNumber(e.target.value.replace(/\s/g, ''))}
                             autoComplete="tel"
                             className="border-2 border-dark py-2"
+                            maxLength={20}
                         />
                     </Card.Body>
                 </Card>
@@ -222,14 +298,15 @@ const EditProfile: React.FC = () => {
                             <p className="small fw-semibold text-uppercase text-muted mb-0">Zmiana hasła</p>
                         </div>
 
-                        <InputGroup className="mb-1">
+                        <InputGroup className="mb-1 input-group-password-focus">
                             <Form.Control
                                 type={showPassword ? 'text' : 'password'}
                                 placeholder="Nowe hasło (opcjonalne)"
                                 value={password}
-                                onChange={e => setPassword(e.target.value)}
+                                onChange={e => setPassword(e.target.value.replace(/\s/g, ''))}
                                 autoComplete="new-password"
                                 className="border-2 border-dark border-end-0 py-2"
+                                maxLength={128}
                             />
                             <Button
                                 variant="outline-dark"
@@ -244,14 +321,15 @@ const EditProfile: React.FC = () => {
                             Min. 8 znaków, wielka i mała litera, cyfra oraz znak specjalny.
                         </p>
 
-                        <InputGroup className="mb-1">
+                        <InputGroup className="mb-1 input-group-password-focus">
                             <Form.Control
                                 type={showPassword ? 'text' : 'password'}
                                 placeholder="Powtórz nowe hasło"
                                 value={confirmPassword}
-                                onChange={e => setConfirmPassword(e.target.value)}
+                                onChange={e => setConfirmPassword(e.target.value.replace(/\s/g, ''))}
                                 autoComplete="new-password"
                                 className="border-2 border-dark border-end-0 py-2"
+                                maxLength={128}
                             />
                             <Button
                                 variant="outline-dark"

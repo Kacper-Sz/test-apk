@@ -32,11 +32,25 @@ const Register: React.FC = () => {
                 const data = await response.json();
 
                 if (!response.ok) {
-                    if (data.status === 80) {
-                        setError('Użytkownik z tym loginem lub emailem już istnieje');
-                    } else {
-                        setError('Rejestracja nie powiodła się');
-                    }
+                    const statusMessages: Record<number, string> = {
+                        1:  'Login jest pusty',
+                        2:  'Email jest pusty',
+                        3:  'Hasło jest puste',
+                        4:  'Imię jest puste',
+                        5:  'Nazwisko jest puste',
+                        6:  'Numer telefonu jest pusty',
+                        11: 'Hasło nie spełnia wymagań bezpieczeństwa',
+                        12: 'Niepoprawny format adresu email',
+                        20: 'Hasło jest za krótkie (min. 8 znaków)',
+                        21: 'Hasło musi zawierać minimum 1 wielką literę',
+                        22: 'Hasło musi zawierać minimum 1 małą literę',
+                        23: 'Hasło musi zawierać minimum jedną cyfrę',
+                        24: 'Hasło musi zawierać minimum jeden znak specjalny',
+                        80: 'Użytkownik z tym loginem lub emailem już istnieje',
+                        98: 'Błąd bazy danych, spróbuj ponownie',
+                        99: 'Nieznany błąd, spróbuj ponownie',
+                    };
+                    setError(statusMessages[data.status] ?? 'Rejestracja nie powiodła się');
                     return;
                 }
 
@@ -54,11 +68,13 @@ const Register: React.FC = () => {
 
     const dataValidation = (): boolean => {
 
-        // TODO ZMIENIC REGEXA ZEBY BYL DOKLADNIEJSZY
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        // Ulepszony regex dla adresów email
+        // Wymusza format: nazwa@domena.rozszerzenie (np. test.123@example.com)
+        // Rozszerzenie po kropce musi mieć 2 lub więcej liter.
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
         if (!emailRegex.test(email)) {
-            setError('Niepoprawnt email!');
+            setError('Niepoprawny email!');
             return false;
         }
         else if (password !== confirmPassword) {
@@ -91,6 +107,12 @@ const Register: React.FC = () => {
 
     const isFormValid = login && email && password && confirmPassword && phoneNumber && firstName && lastName;
 
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && isFormValid) {
+            handleSubmit();
+        }
+    };
+
     if (isLoading) {
         return (
             <div className="min-vh-100 d-flex align-items-center justify-content-center">
@@ -113,9 +135,10 @@ const Register: React.FC = () => {
                             type="text"
                             placeholder="Imię"
                             value={firstName}
-                            onChange={e => setFirstName(e.target.value)}
+                            onChange={e => setFirstName(e.target.value.replace(/\s/g, ''))}
                             autoComplete="given-name"
                             className="border-2 border-dark py-2"
+                            maxLength={50}
                         />
                     </Col>
                     <Col>
@@ -123,9 +146,10 @@ const Register: React.FC = () => {
                             type="text"
                             placeholder="Nazwisko"
                             value={lastName}
-                            onChange={e => setLastName(e.target.value)}
+                            onChange={e => setLastName(e.target.value.replace(/\s/g, ''))}
                             autoComplete="family-name"
                             className="border-2 border-dark py-2"
+                            maxLength={50}
                         />
                     </Col>
                 </Row>
@@ -136,9 +160,10 @@ const Register: React.FC = () => {
                         type="text"
                         placeholder="Login"
                         value={login}
-                        onChange={e => setLogin(e.target.value)}
+                        onChange={e => setLogin(e.target.value.replace(/\s/g, ''))}
                         autoComplete="username"
                         className="border-2 border-dark py-2"
+                        maxLength={50}
                     />
                 </Form.Group>
 
@@ -148,9 +173,10 @@ const Register: React.FC = () => {
                         type="email"
                         placeholder="E-mail"
                         value={email}
-                        onChange={e => setEmail(e.target.value)}
+                        onChange={e => setEmail(e.target.value.replace(/\s/g, ''))}
                         autoComplete="email"
                         className="border-2 border-dark py-2"
+                        maxLength={254}
                     />
                 </Form.Group>
 
@@ -160,28 +186,31 @@ const Register: React.FC = () => {
                         type="tel"
                         placeholder="Numer telefonu"
                         value={phoneNumber}
-                        onChange={e => setPhoneNumber(e.target.value)}
+                        onChange={e => setPhoneNumber(e.target.value.replace(/\s/g, ''))}
                         autoComplete="tel"
                         className="border-2 border-dark py-2"
+                        maxLength={20}
                     />
                 </Form.Group>
 
                 {/* Hasło */}
                 <Form.Group className="mb-1 text-start">
-                    <InputGroup>
+                    <InputGroup className="input-group-password-focus">
                         <Form.Control
                             type={showPassword ? 'text' : 'password'}
                             placeholder="Hasło"
                             value={password}
-                            onChange={e => setPassword(e.target.value)}
+                            onChange={e => setPassword(e.target.value.replace(/\s/g, ''))}
                             autoComplete="new-password"
-                            className="border-2 border-dark border-end-0 py-2"
+                            className="border-2 border-dark border-end-0 py-2 shadow-none"
+                            maxLength={128}
                         />
                         <Button
                             variant="outline-dark"
                             onClick={() => setShowPassword(v => !v)}
+                            tabIndex={-1}
                             aria-label={showPassword ? 'Ukryj hasło' : 'Pokaż hasło'}
-                            className="border-2 border-start-0 bg-white text-secondary"
+                            className="border-2 border-start-0 bg-white text-secondary shadow-none"
                         >
                             {showPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
                         </Button>
@@ -193,20 +222,23 @@ const Register: React.FC = () => {
 
                 {/* Powtórz hasło */}
                 <Form.Group className="mb-1 text-start">
-                    <InputGroup>
+                    <InputGroup className="input-group-password-focus">
                         <Form.Control
                             type={showPassword ? 'text' : 'password'}
                             placeholder="Powtórz hasło"
                             value={confirmPassword}
-                            onChange={e => setConfirmPassword(e.target.value)}
+                            onChange={e => setConfirmPassword(e.target.value.replace(/\s/g, ''))}
+                            onKeyDown={handleKeyDown}
                             autoComplete="new-password"
-                            className="border-2 border-dark border-end-0 py-2"
+                            className="border-2 border-dark border-end-0 py-2 shadow-none"
+                            maxLength={128}
                         />
                         <Button
                             variant="outline-dark"
                             onClick={() => setShowPassword(v => !v)}
+                            tabIndex={-1}
                             aria-label={showPassword ? 'Ukryj hasło' : 'Pokaż hasło'}
-                            className="border-2 border-start-0 bg-white text-secondary"
+                            className="border-2 border-start-0 bg-white text-secondary shadow-none"
                         >
                             {showPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
                         </Button>

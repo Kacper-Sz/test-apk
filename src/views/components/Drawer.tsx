@@ -3,7 +3,7 @@ Komponent Drawer jest zależny od parametru `open`, który określa, czy Drawer 
 Parametr `open` jest częścią stanu komponentu nadrzędnego, który jest przekazywany jako Prop.
 */
 import { useNavigate } from 'react-router';
-import { PersonCircle, Archive, BoxArrowRight, Bell } from 'react-bootstrap-icons';
+import { PersonCircle, Archive, BoxArrowRight, Bell, PersonLinesFill } from 'react-bootstrap-icons';
 import { removeUser } from '../../Storage';
 
 
@@ -38,6 +38,14 @@ const Drawer : React.FC<DrawerProps> = ({open, setOpen}: DrawerProps) => {
                 >
                     <PersonCircle size={20} />
                     Profil
+                </button>
+
+                <button
+                    className="btn btn-light text-start d-flex align-items-center gap-2 px-3 py-2"
+                    onClick={() => { navigate('/friends'); setOpen(false); }}
+                >
+                    <PersonLinesFill size={20} />
+                    Znajomi
                 </button>
 
                 <button

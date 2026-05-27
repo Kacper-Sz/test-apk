@@ -13,11 +13,13 @@ const Login: React.FC = () => {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
 
     
 
     const handleSubmit = async () => {
+        setError(null);
         setIsLoading(true);
         try {
             const response = await fetch('https://carton-api-dev-dkawh3e2cjbhanen.swedencentral-01.azurewebsites.net/api/users/login', {
@@ -29,7 +31,13 @@ const Login: React.FC = () => {
             const data = await response.json();
 
             if (!response.ok) {
-                console.log('Blad logowania:', data);
+                const statusMessages: Record<number, string> = {
+                    10: 'Nieprawidłowy login lub hasło',
+                    81: 'Nie znaleziono użytkownika',
+                    98: 'Błąd bazy danych, spróbuj ponownie',
+                    99: 'Nieznany błąd, spróbuj ponownie',
+                };
+                setError(statusMessages[data.status] ?? 'Błąd logowania, spróbuj ponownie');
                 return;
             }
 
@@ -37,9 +45,16 @@ const Login: React.FC = () => {
             saveTokens(data.tokens);
             navigate('/containers');
         } catch (err) {
+            setError('Błąd sieci, spróbuj ponownie');
             console.log('Blad sieci:', err);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && email && password) {
+            handleSubmit();
         }
     };
 
@@ -70,7 +85,8 @@ const Login: React.FC = () => {
                         type="text"
                         placeholder="Login lub E-mail"
                         value={email}
-                        onChange={e => setEmail(e.target.value)}
+                        onChange={e => setEmail(e.target.value.replace(/\s/g, ''))}
+                        onKeyDown={handleKeyDown}
                         autoComplete="username"
                         className="border-2 border-dark py-2"
                     />
@@ -78,20 +94,22 @@ const Login: React.FC = () => {
 
                 {/* Hasło */}
                 <Form.Group className="mb-2 text-start">
-                    <InputGroup>
+                    <InputGroup className="input-group-password-focus">
                         <Form.Control
                             type={showPassword ? 'text' : 'password'}
                             placeholder="Hasło"
                             value={password}
-                            onChange={e => setPassword(e.target.value)}
+                            onChange={e => setPassword(e.target.value.replace(/\s/g, ''))}
+                            onKeyDown={handleKeyDown}
                             autoComplete="current-password"
-                            className="border-2 border-dark border-end-0 py-2"
+                            className="border-2 border-dark border-end-0 py-2 shadow-none"
                         />
                         <Button
                             variant="outline-dark"
                             onClick={() => setShowPassword(v => !v)}
+                            tabIndex={-1}
                             aria-label={showPassword ? 'Ukryj hasło' : 'Pokaż hasło'}
-                            className="border-2 border-start-0 bg-white text-secondary"
+                            className="border-2 border-start-0 bg-white text-secondary shadow-none"
                         >
                             {showPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
                         </Button>
@@ -109,6 +127,13 @@ const Login: React.FC = () => {
                         Zapomniałeś hasła?
                     </Button>
                 </div>
+
+                {/* Błąd */}
+                {error && (
+                    <div className="alert alert-danger text-start py-2 mb-3" role="alert" style={{ fontSize: '0.85rem' }}>
+                        {error}
+                    </div>
+                )}
 
                 {/* Przycisk Zaloguj */}
                 <Button

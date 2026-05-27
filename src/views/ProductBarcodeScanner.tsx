@@ -147,7 +147,7 @@ const ProductBarcodeScanner: React.FC = () => {
       </div>
 
       {/* Instrukcje skanera */}
-      <div className="position-absolute top-50 start-0 text-center text-white p-3 d-flex align-items-center justify-content-center">
+      <div className="position-absolute top-50 start-50 translate-middle text-center text-white p-3 d-flex align-items-center justify-content-center">
         <p>Skieruj kamerę na kod kreskowy lub kod QR, a my postaramy się znaleźć informacje o produkcie!</p>
       </div>
 
@@ -175,7 +175,8 @@ const ProductBarcodeScanner: React.FC = () => {
               state: {
                 name: result?.product?.brand + " " + productName,
                 unit: result?.product?.unit,
-                capacity: result?.product?.capacity
+                capacity: result?.product?.capacity,
+                imageUrl: result?.product?.image_url
               }
             })
           }}>Wczytaj</Button>

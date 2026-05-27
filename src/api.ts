@@ -51,17 +51,18 @@ const refreshTokens = async (): Promise<boolean> => {
 
     return refreshPromise;
 };
-export const apiFetch = async (endpoint: string, options: RequestInit = {}): Promise<Response> => {
+export const apiFetch = async (endpoint: string, options: RequestInit = {}, contentType: string | null = 'application/json'): Promise<Response> => {
     const tokens = getTokens();
+    const headers: HeadersInit = { };
+    if(contentType) headers['Content-Type'] = contentType;
 
-    const makeRequest = (accessToken: string) => fetch(`${BASE_URL}${endpoint}`, {
-        ...options,
-        headers: {
-            'Content-Type': 'application/json',
-            ...options.headers,
-            'Authorization': `Bearer ${accessToken}`
-        }
-    });
+    const makeRequest = (accessToken: string) => {
+        headers['Authorization'] = `Bearer ${accessToken}`;
+        return fetch(`${BASE_URL}${endpoint}`, {
+            ...options,
+            headers
+        });
+    };
 
     let res = await makeRequest(tokens?.accessToken ?? '');
 

@@ -2,16 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { Container, Card, Button, Modal, Form } from 'react-bootstrap';
 import { PersonCircle, EnvelopeFill, TelephoneFill, PeopleFill, PersonPlusFill } from 'react-bootstrap-icons';
-import { getUser, removeUser, saveUser, saveFriends } from '../Storage';
+import { getUser, removeUser, saveFriends, getStoredFriends } from '../Storage';
 import Drawer from './components/Drawer';
 import Header from './components/Header';
 import type { UserModel, FriendModel } from './types/models.ts';
 import { apiFetch } from '../api.ts';
 
 const MAX_VISIBLE_FRIENDS = 3;
-
-// tu by trzeba bylo aktualizowac liste id znajomych uzytkownika - napisalem ze maja zmienic w api
-// bo poierana jest tylko w moemncie zalogowania xd
 
 const Profile: React.FC = () => {
     const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
@@ -27,70 +24,77 @@ const Profile: React.FC = () => {
     useEffect(() => {
         const init = async () => {
             const cachedUser = getUser();
-            if (cachedUser) {
-                setUser(cachedUser);
-            }
+            if (!cachedUser) return;
 
-            await fetchUser();
+            setUser(cachedUser);
+            await fetchFriends(cachedUser);
         };
 
         init();
     }, []);
 
-    const fetchUser = async () => {
-        const cachedUser = getUser();
-        if (!cachedUser?.id) return;
-
-        try {
-            const response = await apiFetch(`/api/users/${cachedUser.id}`, {
-                method: 'GET',
-            });
-
-            const data = await response.json();
-
-            if (data.status === 0 && data.user) {
-                const freshUser: UserModel = data.user;
-                saveUser(freshUser);
-                setUser(freshUser);
-                await fetchFriends(freshUser);
-            } else {
-                if (cachedUser) {
-                    await fetchFriends(cachedUser);
-                }
-            }
-        } catch (error) {
-            console.error('Błąd podczas pobierania danych użytkownika:', error);
-            if (cachedUser) {
-                await fetchFriends(cachedUser);
-            }
-        }
-    };
-
     const fetchFriends = async (storedUser: UserModel) => {
-        const friendIds: string[] = (storedUser.friends ?? [])
-            .map((f: any) => f?.id ?? f)
-            .filter((id: any): id is string => typeof id === 'string' && id.length > 0);
+        if (!storedUser.id) return;
 
-        if (friendIds.length === 0) return;
+        const cachedFriends = getStoredFriends();
 
         setLoadingFriends(true);
         try {
-            const response = await apiFetch('/api/users/users', {
-                method: 'POST',
-                body: JSON.stringify({ usersId: friendIds })
+            // Pobierz aktualną listę ID znajomych z serwera
+            const friendsListResponse = await apiFetch(`/api/users/friends/${storedUser.id}`, {
+                method: 'GET',
             });
 
-            const data = await response.json();
+            const friendsListData = await friendsListResponse.json();
 
-            if (data.status === 0 && Array.isArray(data.users)) {
-                saveFriends(data.users);
-                setFriends(data.users);
+            if (friendsListData.status !== 0 || !Array.isArray(friendsListData.friends)) {
+                // Błąd API — wróć do cache
+                setFriends(cachedFriends);
+                return;
+            }
+
+            const updatedIds: string[] = friendsListData.friends;
+
+            if (updatedIds.length === 0) {
+                saveFriends([]);
+                setFriends([]);
+                return;
+            }
+
+            const cachedFriendIds = cachedFriends.map(f => f.id);
+            const listsAreDifferent = !arraysEqualAsSet(updatedIds, cachedFriendIds);
+
+            if (listsAreDifferent || cachedFriends.length === 0) {
+                // Lista się zmieniła — pobierz aktualne dane znajomych
+                const response = await apiFetch('/api/users/users', {
+                    method: 'POST',
+                    body: JSON.stringify({ usersId: updatedIds })
+                });
+
+                const data = await response.json();
+
+                if (data.status === 0 && Array.isArray(data.users)) {
+                    saveFriends(data.users);
+                    setFriends(data.users);
+                } else {
+                    setFriends(cachedFriends);
+                }
+            } else {
+                // Lista ID niezmieniona — użyj cache
+                setFriends(cachedFriends);
             }
         } catch (error) {
             console.error('Błąd podczas pobierania znajomych:', error);
+            setFriends(cachedFriends);
         } finally {
             setLoadingFriends(false);
         }
+    };
+
+    const arraysEqualAsSet = (a: string[], b: string[]): boolean => {
+        if (a.length !== b.length) return false;
+        const setA = new Set(a);
+        return b.every(id => setA.has(id));
     };
 
     const handleDeleteAccount = async () => {
