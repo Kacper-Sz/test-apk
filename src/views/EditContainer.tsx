@@ -103,7 +103,10 @@ const EditContainer: React.FC = () => {
             
             const safeTags = (container.tags || []).filter(t => t !== 'null' && t.trim() !== '');
             setTags(safeTags);
-            setStripColor(container.containerStripColor?.name || 'Blue');
+
+            const colorName = container.containerStripColor?.name;
+            setStripColor(colorName && colorName !== 'null' ? colorName : null);
+
             setImageUrl(container.imageUrl || null);
 
             let friends = getStoredFriends();
@@ -269,7 +272,7 @@ const EditContainer: React.FC = () => {
         formData.append('newDescription', description);
         tags.forEach(tag => formData.append('newTags', tag));
         formData.append('newIsForMoreUsers', JSON.stringify(isGroup));
-        formData.append('newContainerStripColor', stripColor ?? '');
+        formData.append('newContainerStripColor', stripColor ?? 'null');
         if (imageFile) {
             formData.append('newImage', imageFile);
         }
@@ -511,7 +514,7 @@ const EditContainer: React.FC = () => {
                             </button>
                         </div>
                         <div className="text-muted mt-2" style={{ fontSize: '0.75rem' }}>
-                            Wybrany: {STRIP_COLORS.find(c => c.value === stripColor)?.label ? stripColor : 'Brak'}
+                            Wybrany: {STRIP_COLORS.find(c => c.value === stripColor)?.label || 'Brak'}
                         </div>
                     </Card.Body>
                 </Card>
