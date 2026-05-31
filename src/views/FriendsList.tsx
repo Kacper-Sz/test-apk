@@ -325,18 +325,16 @@ const FriendsList: React.FC = () => {
                                             style={{ transition: 'background 0.15s' }}
                                             {...handleLongPress()}
                                         >
-                                            <div style={{ height: 40, width: 40 }}>
+                                            <div style={{ height: 40, width: 40, flexShrink: 0 }}>
                                                 {friend.profileUrl ? (
                                                     <img
                                                         src={friend.profileUrl}
                                                         alt="Profil"
-                                                        className="img-fluid rounded-circle"
+                                                        className="rounded-circle"
+                                                        style={{ width: 40, height: 40, objectFit: 'cover' }}
                                                     />
                                                 ) : (
-                                                    <PersonCircle
-                                                        size={40}
-                                                        className={`flex-shrink-0 `}
-                                                    />
+                                                    <PersonCircle size={40} className="flex-shrink-0" />
                                                 )}
                                             </div>
                                             <div className="flex-grow-1 overflow-hidden">

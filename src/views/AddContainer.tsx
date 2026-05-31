@@ -293,13 +293,13 @@ const AddContainer: React.FC = () => {
                                     style={{border: '2px solid #ccc' }}/>
                                 )}
                             </div>
-                            <button
+                            {/* <button
                                 className="btn btn-dark rounded-circle d-flex align-items-center justify-content-center position-absolute"
                                 style={{ width: 36, height: 36, bottom: -8, left: -8 }}
                                 onClick={() => console.log('TODO: aparat')}
                             >
                                 <CameraFill size={16} />
-                            </button>
+                            </button> */}
                             <button
                                 className="btn btn-dark rounded-circle d-flex align-items-center justify-content-center position-absolute"
                                 style={{ width: 36, height: 36, bottom: -8, right: -8 }}
@@ -449,10 +449,18 @@ const AddContainer: React.FC = () => {
                                 {/* Ty jako owner */}
                                 <div className="d-flex align-items-center gap-2">
                                     <div
-                                        className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                        className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 overflow-hidden"
                                         style={{ width: 36, height: 36, background: '#64b5f6' }}
                                     >
-                                        <PersonCircle size={22} color="white" />
+                                        {currentUser?.profileUrl ? (
+                                            <img
+                                                src={currentUser.profileUrl}
+                                                alt="Profil"
+                                                style={{ width: 36, height: 36, objectFit: 'cover' }}
+                                            />
+                                        ) : (
+                                            <PersonCircle size={22} color="white" />
+                                        )}
                                     </div>
                                     <span className="flex-grow-1 small text-truncate">
                                         {currentUser?.email || 'ty'}
@@ -466,10 +474,18 @@ const AddContainer: React.FC = () => {
                                 {members.map((member, index) => (
                                     <div key={member.friend.id} className="d-flex align-items-center gap-2">
                                         <div
-                                            className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                            className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 overflow-hidden"
                                             style={{ width: 36, height: 36, background: getAvatarColor(index + 1) }}
                                         >
-                                            <PersonCircle size={22} color="white" />
+                                            {member.friend.profileUrl ? (
+                                                <img
+                                                    src={member.friend.profileUrl}
+                                                    alt="Profil"
+                                                    style={{ width: 36, height: 36, objectFit: 'cover' }}
+                                                />
+                                            ) : (
+                                                <PersonCircle size={22} color="white" />
+                                            )}
                                         </div>
                                         <span className="flex-grow-1 small text-truncate">
                                             {member.friend.firstName} {member.friend.lastName}

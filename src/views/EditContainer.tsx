@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Container, Card, Form, InputGroup, Button, Alert } from 'react-bootstrap';
-import { PencilFill, Stars, PlusLg, PersonCircle, PlusCircle, XLg, X } from 'react-bootstrap-icons';
+import { PencilFill, Stars, PlusLg, PersonCircle, PlusCircle, XLg, X, LockFill } from 'react-bootstrap-icons';
 import Drawer from './components/Drawer';
 import Header from './components/Header';
 import { getUser, getStoredFriends, getStoredContainers, saveContainers, saveFriends } from '../Storage';
@@ -399,13 +399,13 @@ const EditContainer: React.FC = () => {
 
                 {isReadOnly && (
                     <Alert variant="warning" className="mb-3" style={{ fontSize: '0.9rem' }}>
-                        🔒 Masz rolę <strong>editor</strong> lub <strong>viewer</strong> — możesz tylko przeglądać dane kontenera. Do edycji potrzebujesz wyższych uprawnień.
+                        <span><LockFill className="me-1" /> Masz rolę <strong>editor</strong> lub <strong>viewer</strong> — możesz tylko przeglądać dane kontenera. Do edycji potrzebujesz wyższych uprawnień.</span>
                     </Alert>
                 )}
 
                 {permissionError && (
                     <Alert variant="danger" className="mb-3" style={{ fontSize: '0.85rem' }}>
-                        🔒 {permissionError}
+                        <span><LockFill className="me-1" /> {permissionError}</span>
                     </Alert>
                 )}
 
@@ -536,7 +536,7 @@ const EditContainer: React.FC = () => {
                                     <PlusLg size={16} />
                                 </Button>
                             </InputGroup>
-                            <Button
+                            {/* <Button
                                 variant="outline-dark"
                                 className="border-2 d-flex align-items-center flex-shrink-0"
                                 onClick={() => console.log('TODO: AI tagi')}
@@ -544,7 +544,7 @@ const EditContainer: React.FC = () => {
                                 disabled={isReadOnly}
                             >
                                 <Stars size={18} />
-                            </Button>
+                            </Button> */}
                         </div>
                         {tags.length > 0 && (
                             <div className="d-flex flex-wrap gap-1 mt-1">
@@ -591,10 +591,21 @@ const EditContainer: React.FC = () => {
                                 {/* Właściciel kontenera */}
                                 <div className="d-flex align-items-center gap-2">
                                     <div
-                                        className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                        className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 overflow-hidden"
                                         style={{ width: 36, height: 36, background: '#64b5f6' }}
                                     >
-                                        <PersonCircle size={22} color="white" />
+                                        {(() => {
+                                            const ownerUser = ownerInfo.id === currentUser?.id ? currentUser : allFriends.find(f => f.id === ownerInfo.id);
+                                            return ownerUser?.profileUrl ? (
+                                                <img
+                                                    src={ownerUser.profileUrl}
+                                                    alt="Profil"
+                                                    style={{ width: 36, height: 36, objectFit: 'cover' }}
+                                                />
+                                            ) : (
+                                                <PersonCircle size={22} color="white" />
+                                            );
+                                        })()}
                                     </div>
                                     <span className="flex-grow-1 small text-truncate">
                                         {ownerInfo.name}
@@ -608,14 +619,14 @@ const EditContainer: React.FC = () => {
                                 {members.map((member, index) => (
                                     <div key={member.friend.id} className="d-flex align-items-center gap-2">
                                         <div
-                                            className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                            className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 overflow-hidden"
                                             style={{ width: 36, height: 36, background: getAvatarColor(index + 1) }}
                                         >
                                             {member.friend.profileUrl ? (
                                                 <img
                                                     src={member.friend.profileUrl}
                                                     alt="Profil"
-                                                    className="img-fluid rounded-circle"
+                                                    style={{ width: 36, height: 36, objectFit: 'cover' }}
                                                 />
                                             ) : (
                                                 <PersonCircle

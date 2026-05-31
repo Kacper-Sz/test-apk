@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Card, Alert, Dropdown, Badge, Collapse, Modal, Button, ListGroup, Form } from 'react-bootstrap';
-import { PlusCircle, Box, ChevronDown, ChevronUp, ThreeDotsVertical, XLg, TrashFill, ArrowRightCircle } from 'react-bootstrap-icons';
+import { PlusCircle, Box, ChevronDown, ChevronUp, ThreeDotsVertical, XLg, TrashFill, ArrowRightCircle, LockFill } from 'react-bootstrap-icons';
 import type { ContainerModel } from './types/models.ts';
 import { getUserRole, canPerformAction } from './types/models.ts';
 import LoadingSpinner from './components/Spinner';
@@ -375,7 +375,13 @@ const Containers: React.FC = () => {
                 if (role !== filters.role) return false;
             }
             // Filtr koloru paska
-            if (filters.stripColor !== null && c.containerStripColor?.name !== filters.stripColor) return false;
+            if (filters.stripColor !== null) {
+                if (filters.stripColor === 'none') {
+                    if (c.containerStripColor?.name && c.containerStripColor.name !== 'null') return false;
+                } else {
+                    if (c.containerStripColor?.name !== filters.stripColor) return false;
+                }
+            }
             return true;
         })
         .sort((a, b) => {
@@ -386,8 +392,14 @@ const Containers: React.FC = () => {
 
     // Kolory dostępne w obecnym zbiorze kontenerów (do panelu filtrów)
     const availableColors = [...new Set(
-        containers.map(c => c.containerStripColor?.name).filter(Boolean) as string[]
+        containers.map(c => c.containerStripColor?.name).filter(
+            (name): name is string => !!name && name !== 'null'
+        )
     )];
+
+    const hasColorlessContainers = containers.some(
+        c => !c.containerStripColor?.name || c.containerStripColor.name === 'null'
+    );
 
     const toggleExpand = (id: string) => {
         setExpandedId(prev => prev === id ? null : id);
@@ -471,11 +483,12 @@ const Containers: React.FC = () => {
                 filters={filters}
                 setFilters={setFilters}
                 availableColors={availableColors}
+                hasColorlessContainers={hasColorlessContainers}
             />
 
             {permissionError && (
                 <Alert variant="warning" className="mx-3 mt-2 mb-0 py-2" style={{ fontSize: '0.9rem' }}>
-                    🔒 {permissionError}
+                    <span><LockFill className="me-1" /> {permissionError}</span>
                 </Alert>
             )}
 
@@ -593,7 +606,7 @@ const Containers: React.FC = () => {
                                                             }}
                                                             className={!canEdit ? 'text-muted' : ''}
                                                         >
-                                                            Edytuj {!canEdit && '🔒'}
+                                                            Edytuj {!canEdit && <LockFill className="ms-1" />}
                                                         </Dropdown.Item>
                                                         <Dropdown.Item
                                                             onClick={() => {
@@ -605,7 +618,7 @@ const Containers: React.FC = () => {
                                                             }}
                                                             className={isOwner ? 'text-danger' : 'text-muted'}
                                                         >
-                                                            Usuń {!isOwner && '🔒'}
+                                                            Usuń {!isOwner && <LockFill className="ms-1" />}
                                                         </Dropdown.Item>
                                                     </Dropdown.Menu>
                                                 </Dropdown>

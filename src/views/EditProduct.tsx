@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Container, Card, Form, InputGroup, Button, Alert } from 'react-bootstrap';
-import { PencilFill, Stars, PlusLg, XLg } from 'react-bootstrap-icons';
+import { PencilFill, Stars, PlusLg, XLg, LockFill } from 'react-bootstrap-icons';
 import Drawer from './components/Drawer';
 import Header from './components/Header';
 import { getStoredProductsByContainerId, getStoredContainers, getUser, updateProductInContainer } from '../Storage';
@@ -188,13 +188,13 @@ const EditProduct: React.FC = () => {
 
                 {!canEdit && (
                     <Alert variant="warning" className="mb-3" style={{ fontSize: '0.9rem' }}>
-                        🔒 Nie masz uprawnień do edycji produktów w tym kontenerze. Wymagana rola: <strong>editor</strong> lub wyższa.
+                        <span><LockFill className="me-1" /> Nie masz uprawnień do edycji produktów w tym kontenerze. Wymagana rola: <strong>editor</strong> lub wyższa.</span>
                     </Alert>
                 )}
 
                 {permissionError && (
                     <Alert variant="danger" className="mb-3" style={{ fontSize: '0.85rem' }}>
-                        🔒 {permissionError}
+                        <span><LockFill className="me-1" /> {permissionError}</span>
                     </Alert>
                 )}
 
@@ -261,7 +261,7 @@ const EditProduct: React.FC = () => {
                                 maxLength={100}
                                 disabled={!canEdit}
                             />
-                            <Button
+                            {/* <Button
                                 variant="outline-dark"
                                 className="border-2 d-flex align-items-center"
                                 onClick={() => console.log('TODO: AI nazwa')}
@@ -269,7 +269,7 @@ const EditProduct: React.FC = () => {
                                 disabled={!canEdit}
                             >
                                 <Stars size={18} />
-                            </Button>
+                            </Button> */}
                         </InputGroup>
                     </Card.Body>
                 </Card>
@@ -289,7 +289,7 @@ const EditProduct: React.FC = () => {
                                 disabled={!canEdit}
                             />
                             <span className="text-muted fw-semibold">szt.</span>
-                            <Button
+                            {/* <Button
                                 variant="outline-dark"
                                 className="border-2 d-flex align-items-center ms-auto"
                                 onClick={() => console.log('TODO: AI ilosc')}
@@ -297,7 +297,7 @@ const EditProduct: React.FC = () => {
                                 disabled={!canEdit}
                             >
                                 <Stars size={18} />
-                            </Button>
+                            </Button> */}
                         </div>
                     </Card.Body>
                 </Card>
@@ -327,7 +327,7 @@ const EditProduct: React.FC = () => {
                                     <option key={u} value={u}>{u}</option>
                                 ))}
                             </Form.Select>
-                            <Button
+                            {/* <Button
                                 variant="outline-dark"
                                 className="border-2 d-flex align-items-center ms-auto"
                                 onClick={() => console.log('TODO: AI pojemnosc')}
@@ -335,7 +335,7 @@ const EditProduct: React.FC = () => {
                                 disabled={!canEdit}
                             >
                                 <Stars size={18} />
-                            </Button>
+                            </Button> */}
                         </div>
                     </Card.Body>
                 </Card>
@@ -360,7 +360,7 @@ const EditProduct: React.FC = () => {
                                     <PlusLg size={16} />
                                 </Button>
                             </InputGroup>
-                            <Button
+                            {/* <Button
                                 variant="outline-dark"
                                 className="border-2 d-flex align-items-center flex-shrink-0"
                                 onClick={() => console.log('TODO: AI tagi')}
@@ -368,7 +368,7 @@ const EditProduct: React.FC = () => {
                                 disabled={!canEdit}
                             >
                                 <Stars size={18} />
-                            </Button>
+                            </Button> */}
                         </div>
                         {tags.length > 0 && (
                             <div className="d-flex flex-wrap gap-1 mt-1">
@@ -421,7 +421,7 @@ const EditProduct: React.FC = () => {
                                 disabled={!canEdit}
                                 maxLength={1000}
                             />
-                            <Button
+                            {/* <Button
                                 variant="outline-dark"
                                 className="border-2 d-flex align-items-center flex-shrink-0"
                                 onClick={() => console.log('TODO: AI opis')}
@@ -429,7 +429,7 @@ const EditProduct: React.FC = () => {
                                 disabled={!canEdit}
                             >
                                 <Stars size={18} />
-                            </Button>
+                            </Button> */}
                         </div>
                         {canEdit && (
                             <div className="text-muted text-end mt-1" style={{ fontSize: '0.75rem' }}>

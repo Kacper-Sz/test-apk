@@ -12,7 +12,7 @@ export type RoleFilter = 'all' | 'Owner' | 'Admin' | 'Editor' | 'Viewer';
 export interface ContainerFilters {
     sharing: SharingFilter;
     role: RoleFilter;
-    stripColor: string | null;  // np. 'Red', 'Blue' lub null = brak filtru
+    stripColor: string | null;  // np. 'Red', 'Blue', 'none' = bez koloru, null = brak filtru
 }
 
 export interface ProductFilters {
@@ -37,6 +37,7 @@ type ContainerSearchBarProps = BaseProps & {
     filters: ContainerFilters;
     setFilters: (f: ContainerFilters) => void;
     availableColors?: string[];   // kolory paska dostępne w bieżącym zbiorze
+    hasColorlessContainers?: boolean; // czy są kontenery bez koloru
 };
 
 type ProductSearchBarProps = BaseProps & {
@@ -76,7 +77,7 @@ const EXPIRATION_LABELS: Record<ExpirationFilter, string> = {
     has_date: 'Z datą ważności',
     no_date: 'Bez daty',
     expired: 'Przeterminowane',
-    expiring_soon: 'Wkrótce wygasną',
+    expiring_soon: 'Wkrótce przeterminowane',
     ok: 'OK',
 };
 
@@ -104,7 +105,8 @@ const ContainerFilterPanel: React.FC<{
     filters: ContainerFilters;
     setFilters: (f: ContainerFilters) => void;
     availableColors: string[];
-}> = ({ filters, setFilters, availableColors }) => {
+    hasColorlessContainers: boolean;
+}> = ({ filters, setFilters, availableColors, hasColorlessContainers }) => {
     const set = (patch: Partial<ContainerFilters>) =>
         setFilters({ ...filters, ...patch });
 
@@ -148,7 +150,7 @@ const ContainerFilterPanel: React.FC<{
             </div>
 
             {/* Kolor paska */}
-            {availableColors.length > 0 && (
+            {(availableColors.length > 0 || hasColorlessContainers) && (
                 <div>
                     <div className="text-muted mb-1" style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                         Kolor paska
@@ -160,6 +162,24 @@ const ContainerFilterPanel: React.FC<{
                         >
                             Wszystkie
                         </button>
+                        {hasColorlessContainers && (
+                            <button
+                                className={`btn btn-sm d-flex align-items-center gap-1 ${filters.stripColor === 'none' ? 'btn-secondary' : 'btn-outline-secondary'}`}
+                                onClick={() => set({ stripColor: filters.stripColor === 'none' ? null : 'none' })}
+                            >
+                                <span
+                                    style={{
+                                        display: 'inline-block',
+                                        width: 12,
+                                        height: 12,
+                                        borderRadius: '50%',
+                                        background: 'transparent',
+                                        border: '1px solid rgba(0,0,0,0.3)',
+                                    }}
+                                />
+                                Bez koloru
+                            </button>
+                        )}
                         {availableColors.map(color => (
                             <button
                                 key={color}
@@ -329,6 +349,7 @@ const SearchBar: React.FC<SearchBarProps> = (props) => {
                                         filters={props.filters}
                                         setFilters={props.setFilters}
                                         availableColors={props.availableColors ?? []}
+                                        hasColorlessContainers={props.hasColorlessContainers ?? false}
                                     />
                                 ) : (
                                     <ProductFilterPanel

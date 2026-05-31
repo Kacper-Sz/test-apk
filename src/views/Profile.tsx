@@ -211,7 +211,16 @@ const Profile: React.FC = () => {
                             <div className="d-flex flex-column gap-2">
                                 {visibleFriends.map((friend, index) => (
                                     <div key={friend.id || index} className="d-flex align-items-center gap-3 py-1">
-                                        <PersonCircle size={36} className="text-secondary flex-shrink-0" />
+                                        {friend.profileUrl ? (
+                                            <img
+                                                src={friend.profileUrl}
+                                                alt="Profil"
+                                                className="rounded-circle flex-shrink-0"
+                                                style={{ width: 36, height: 36, objectFit: 'cover' }}
+                                            />
+                                        ) : (
+                                            <PersonCircle size={36} className="text-secondary flex-shrink-0" />
+                                        )}
                                         <div>
                                             <p className="mb-0 fw-semibold">{friend.firstName} {friend.lastName}</p>
                                             <p className="mb-0 small text-muted">@{friend.login}</p>

@@ -116,7 +116,7 @@ const ProductBarcodeScanner: React.FC = () => {
       />
 
       <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
-        <img src={qrLens} className="qr-lens opacity-50" alt="Ramka skanera" />
+         <img src={qrLens} className="qr-lens opacity-50" alt="Ramka skanera" />
       </div>
 
       {/* Nagłówek skanera kodów kreskowych */}
@@ -140,12 +140,12 @@ const ProductBarcodeScanner: React.FC = () => {
       </div>
 
       {/* Przycisk wysyłający zapytanie o ustalony produkt - na potrzeby developmentu */}
-      <div className="position-absolute bottom-0 start-0 m-3">
+      {/* <div className="position-absolute bottom-0 start-0 m-3">
         <Hammer color={"white"} size={"48"} onClick={() => {
           setIsOverlayVisible(true);
           fetchProductInfo(DEBUG_BARCODE).then((value) => setResult(value));
         }} />
-      </div>
+      </div> */}
 
       {/* Instrukcje skanera */}
       <div className="position-absolute top-50 start-50 translate-middle text-center text-white p-3 d-flex align-items-center justify-content-center">

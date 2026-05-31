@@ -116,7 +116,10 @@ const Login: React.FC = () => {
                     </InputGroup>
                 </Form.Group>
 
+
                 {/* Zapomniałeś hasła */}
+{/* 
+                
                 <div className="text-end mb-4">
                     <Button
                         variant="link"
@@ -127,6 +130,7 @@ const Login: React.FC = () => {
                         Zapomniałeś hasła?
                     </Button>
                 </div>
+*/}
 
                 {/* Błąd */}
                 {error && (
