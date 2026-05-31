@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { BrowserMultiFormatReader } from "@zxing/library";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowRepeat, ChevronLeft, Hammer } from "react-bootstrap-icons";
+import { ArrowRepeat, ChevronLeft } from "react-bootstrap-icons";
 import type { BarcodeProductInfo } from "./types/models";
 import { Button } from "react-bootstrap";
 import qrLens from "../assets/qr_lens.svg";
 
-const DEBUG_BARCODE = "5906734830713";
+//const DEBUG_BARCODE = "5906734830713";
 
 const ProductBarcodeScanner: React.FC = () => {
   const { id: containerId } = useParams<{ id: string }>();

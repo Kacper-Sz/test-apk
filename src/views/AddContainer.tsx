@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Card, Form, InputGroup, Button, Alert } from 'react-bootstrap';
-import { CameraFill, PencilFill, Stars, PlusLg, PersonCircle, PlusCircle, X } from 'react-bootstrap-icons';
+import { PencilFill, Stars, PlusLg, PersonCircle, PlusCircle, X } from 'react-bootstrap-icons';
 import Drawer from './components/Drawer';
 import Header from './components/Header';
 import { getUser, getStoredFriends, getStoredContainers, saveContainers, saveFriends } from '../Storage';
